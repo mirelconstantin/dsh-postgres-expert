@@ -1,0 +1,33 @@
+dsh-postgres-guide
+Copyright 2025 Timescale, Inc., d/b/a Tiger Data (the vendored PostgreSQL skills)
+Copyright 2026 dsh-postgres-guide contributors (the plugin, sync tooling and CI)
+
+This product includes software developed at Timescale, Inc. (https://www.timescale.com/),
+d/b/a Tiger Data.
+
+The files under `assets/skills/` are redistributed unmodified from
+https://github.com/timescale/pg-aiguide, which is licensed under the Apache
+License, Version 2.0. The upstream copyright notice is retained verbatim below,
+as that licence requires for redistributed copies.
+
+--------------------------------------------------------------------------------
+Upstream notice, as published in timescale/pg-aiguide NOTICE:
+
+Copyright 2025 Timescale, Inc., d/b/a Tiger Data
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+--------------------------------------------------------------------------------
+
+The `mcp__pg_aiguide__*` tools come from the public pg-aiguide MCP server at
+https://mcp.tigerdata.com/docs, operated by Tiger Data. This package configures
+that connection and vendors no server code.

@@ -1,0 +1,95 @@
+name: Sync pg-aiguide
+
+# The vendored skills under assets/skills/ are what the plugin serves, so this
+# workflow is what keeps a published package current with upstream. It runs on a
+# schedule and on demand, opens a pull request when upstream moved, and a second
+# job fails if that pull request was never merged — a stale mirror is a broken
+# promise made in the README, so it is treated as a failure rather than a notice.
+
+on:
+  schedule:
+    # 04:17 UTC daily. Off the hour so this does not queue behind every other
+    # scheduled job on the platform.
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-pg-aiguide
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync and propose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Rewrite assets/skills/ and the pin from upstream.
+      - name: Sync upstream
+        run: node scripts/sync-upstream.mjs
+
+      - name: Fail when upstream moved and nothing committed it
+        run: |
+          if ! git diff --quiet; then
+            echo "Upstream pg-aiguide has moved. Commit the result or close this run:" >&2
+            git --no-pager diff --stat >&2
+            exit 1
+          fi
+
+      - name: Run the tests against the freshly synced tree
+        run: npm test
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: sync/pg-aiguide
+          title: 'Sync pg-aiguide skills from upstream'
+          commit-message: 'Sync pg-aiguide skills from upstream'
+          body: |
+            Automated sync of the vendored skills in `assets/skills/` from
+            [timescale/pg-aiguide](https://github.com/timescale/pg-aiguide).
+
+            `assets/upstream.json` records the upstream commit, the licence and a
+            SHA-256 digest per file, so the exact upstream state this package
+            corresponds to is reviewable without fetching anything.
+
+            Review notes for an upstream content change:
+
+            - a new or renamed skill directory changes the catalogue the plugin
+              registers and the guidance section's list of skill names
+            - a changed description changes what the model routes on
+            - upstream Apache-2.0 terms still apply; see `NOTICE`
+
+  freshness:
+    name: Assert the published mirror is current
+    runs-on: ubuntu-latest
+    needs: sync
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Runs the same comparison CI runs on a pull request: it exits non-zero on
+      # any difference between the vendored tree and what upstream would give.
+      - name: Check the vendored tree against upstream
+        run: node scripts/sync-upstream.mjs --check
+
+      - name: Report an unmerged sync
+        if: failure()
+        run: |
+          echo "The vendored pg-aiguide skills are behind upstream and the sync" >&2
+          echo "pull request has not been merged. Merge it before publishing a" >&2
+          echo "new version of dsh-postgres-guide." >&2
+          gh pr list --head sync/pg-aiguide --state open \
+            || echo "No open sync pull request was found." >&2

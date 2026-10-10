@@ -1,0 +1,17 @@
+# The vendored skills must stay byte-identical to upstream.
+#
+# `sync:check` compares the files on disk against a fresh download and the tests
+# verify each file against the digest in `assets/upstream.json`. Git's default
+# `core.autocrlf` on Windows would rewrite every line ending on checkout, so
+# those comparisons would fail on a Windows machine for a reason that has
+# nothing to do with the plugin. LF is the only setting that keeps the vendored
+# tree identical everywhere, and upstream already uses it.
+* text=auto eol=lf
+
+# Binary files must never be line-ending translated or merged.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,66 @@
+# dsh-postgres-expert — PostgreSQL expertise as native harness surfaces.
+#
+# This layer contributes three independent rows:
+#
+#   1. `postgres-expert-skills` registers the 11 curated pg-aiguide skills on the
+#      harness skill registry, so the model loads them through the normal `skill`
+#      tool and they appear in the session catalog.
+#   2. `postgres-expert-prompt` tells every model that PostgreSQL expertise is on
+#      this machine.
+#   3. `postgres-expert-mcp` connects Tiger Data's public pg-aiguide MCP server
+#      over Streamable HTTP, which contributes `mcp__pg-aiguide__search_docs`
+#      and `mcp__pg-aiguide__view_skill` as ordinary harness tools.
+#
+# The rows are separate so a configuration reload of one does not take the
+# others down, and so a profile can keep the skills while dropping the
+# network-backed MCP connection, or the reverse.
+#
+# The skills need no network: their bodies are vendored under `assets/skills/`.
+# Only the MCP row reaches the network, and `enabled: false` on that row turns
+# it off without touching the skills.
+#
+# Plugin paths are relative, so they resolve next to this file. Nothing here
+# resolves through node_modules: a profile's node_modules holds only the plugin
+# link, never the harness packages, so every source in src/ is self-contained
+# and depends only on `ctx`.
+- insert:
+    # 1. The curated PostgreSQL skills.
+    - id: postgres-expert-skills
+      name: './src/entry-skills.js'
+      inject: [skills]
+    # 2. The system-prompt guidance that makes the guidance known.
+    - id: postgres-expert-prompt
+      name: './src/entry-prompt.js'
+      inject: [systemPrompt]
+    # 3. Tiger Data's public pg-aiguide MCP server.
+    #
+    # This is the generic client row documented in the harness MCP guide: one
+    # `@deepseek-ai/dsh-mcp-client` entry per server, with the transport fields
+    # that server needs. DSH connects, discovers the tools and exposes them as
+    # ordinary harness tools; it does not host or supervise the server.
+    #
+    # `serverName` becomes the namespace of every tool this connection
+    # contributes, as `mcp__pg-aiguide__<tool>`. It must match
+    # `[A-Za-z0-9_-]{1,32}` and be unique in this scope. The hyphenated name is
+    # upstream's own server name, so the tools read the same here as in the
+    # pg-aiguide README for every other client.
+    #
+    # `failOnStartupError: false` is deliberate. A plugin that fails its load
+    # when a remote endpoint is down would take the vendored skills down with it,
+    # and the skills are the part that always works. The client keeps its own
+    # reconnect policy, so a transient outage is retried rather than fatal.
+    - id: postgres-expert-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        transport: streamable-http
+        serverName: pg-aiguide
+        url: https://mcp.tigerdata.com/docs
+        headers: {}
+        toolCallTimeoutMs: 60000
+        failOnStartupError: false
+        maxInstructionBytes: 32768
+        reconnect:
+          enabled: true
+          initialDelayMs: 500
+          maxDelayMs: 30000
+          maxAttempts: 10

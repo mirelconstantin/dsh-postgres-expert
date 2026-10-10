@@ -1,0 +1,86 @@
+{
+  "name": "dsh-postgres-expert",
+  "version": "1.0.0",
+  "description": "PostgreSQL expertise for DeepSeek Harness: 11 curated pg-aiguide skills from Tiger Data registered natively, plus their public MCP server for version-exact manual search.",
+  "icon": "./icon.svg",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./skills": "./src/entry-skills.js",
+    "./prompt": "./src/entry-prompt.js",
+    "./sync": "./scripts/sync-upstream.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "assets",
+    "scripts",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "plugin",
+    "dsh-plugin",
+    "dsh-plugins",
+    "dsh-external",
+    "deepseek-harness-plugin",
+    "codis-plugin",
+    "postgres",
+    "postgresql",
+    "timescaledb",
+    "postgis",
+    "pgvector",
+    "mcp",
+    "skill",
+    "schema-design"
+  ],
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-mcp-client": ">=0.2.0-0 <0.3.0",
+    "@deepseek-ai/schemastery": "~3.18.4"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-mcp-client": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mirelconstantin/dsh-postgres-expert.git"
+  },
+  "homepage": "https://github.com/mirelconstantin/dsh-postgres-expert#readme",
+  "bugs": {
+    "url": "https://github.com/mirelconstantin/dsh-postgres-expert/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.0-rc.2": "compatible"
+      }
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-upstream.mjs",
+    "sync:check": "node scripts/sync-upstream.mjs --check",
+    "prepublishOnly": "node scripts/prepublish.mjs",
+    "test": "node --test test/plugin.test.js",
+    "test:unit": "node --test test/plugin.test.js"
+  }
+}

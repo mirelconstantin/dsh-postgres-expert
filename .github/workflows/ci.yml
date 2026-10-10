@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Behaviour tests over the vendored catalogue and the sync helpers.
+      - name: Test
+        run: npm test
+
+      # The vendored tree must be byte-identical to what upstream currently
+      # gives. This is the gate that keeps the published package honest: it fails
+      # when upstream moved and nobody ran `npm run sync`.
+      - name: Check the vendored skills against upstream
+        run: node scripts/sync-upstream.mjs --check
+
+      # A pull request must never leave the working tree dirty, which is what a
+      # generated file that does not match its generator looks like. The step is
+      # pinned to bash because the shell on windows-latest is PowerShell, where
+      # `||` between commands is a parser error rather than a short circuit.
+      - name: Fail on an uncommitted diff
+        shell: bash
+        run: |
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            git --no-pager diff >&2
+            echo "The working tree is dirty after verification." >&2
+            exit 1
+          fi
+
+      # The bundle patch must stay parseable and must keep inserting the rows the
+      # package exports, or a profile would load a bundle with no skills in it.
+      - name: Check the bundle patch lists the plugin's entries
+        run: node scripts/check-patch.mjs

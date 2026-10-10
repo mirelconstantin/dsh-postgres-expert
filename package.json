@@ -1,6 +1,6 @@
 {
   "name": "dsh-postgres-expert",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PostgreSQL expertise for DeepSeek Harness: 11 curated pg-aiguide skills from Tiger Data registered natively, plus their public MCP server for version-exact manual search.",
   "icon": "./icon.svg",
   "type": "module",

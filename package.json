@@ -80,6 +80,7 @@
     "sync": "node scripts/sync-upstream.mjs",
     "sync:check": "node scripts/sync-upstream.mjs --check",
     "prepublishOnly": "node scripts/prepublish.mjs",
+    "prepublish": "node scripts/prepublish.mjs",
     "test": "node --test test/plugin.test.js",
     "test:unit": "node --test test/plugin.test.js"
   }

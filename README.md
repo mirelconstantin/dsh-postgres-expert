@@ -5,9 +5,11 @@
 <h1 align="center">dsh-postgres-expert</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Node-%3E%3D23.4-FFC24D?style=flat-square&logo=node&logoColor=black" alt="Node">
+  <img src="https://img.shields.io/npm/v/dsh-postgres-expert-FFC24D?style=flat-square&logo=npm&logoColor=black" alt="npm version">
+  <img src="https://img.shields.io/npm/dw/dsh-postgres-expert-F0522C?style=flat-square&logo=npm&logoColor=white" alt="npm downloads">
+  <img src="https://img.shields.io/badge/Node-%3E%3D22.19-FFC24D?style=flat-square&logo=node&logoColor=black" alt="Node">
   <img src="https://img.shields.io/badge/Skills-11-FFC24D?style=flat-square" alt="Skills">
-  <img src="https://img.shields.io/badge/Tests-23-FFC24D?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-26-FFC24D?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/Licence-Apache--2.0-F0522C?style=flat-square" alt="Licence">
 </p>
 
@@ -24,18 +26,19 @@ Anyone can install this. It needs a DeepSeek Harness profile, and nothing else â
 no API key, no database and no account, because the only network call it makes is
 an optional documentation search against a public endpoint.
 
-From the GUI, paste this into **Add plugin** and pick **Official npm registry**
-unless you have changed the default:
+From the GUI, paste this into **Add plugin**:
 
 ```
-github:mirelconstantin/dsh-postgres-expert
+dsh-postgres-expert
 ```
 
 Or from a terminal:
 
 ```bash
-dsh plugin add github:mirelconstantin/dsh-postgres-expert
+dsh plugin add dsh-postgres-expert
 ```
+
+That is a plain npm install. It needs neither git nor a GitHub account.
 
 **No build step is involved.** Every entry point ships as committed source, so
 pnpm never has to run this package's scripts and you are never asked to
@@ -61,22 +64,22 @@ point, not an obstacle.
 
 | Route | Command |
 | --- | --- |
-| Published to npm | `dsh plugin add dsh-postgres-expert` |
+| npm, the default | `dsh plugin add dsh-postgres-expert` |
+| Pinned to a version | `dsh plugin add dsh-postgres-expert@1.0.0` |
 | Pinned to a commit | `dsh plugin add github:mirelconstantin/dsh-postgres-expert#<sha>` |
 | Tarball | `dsh plugin add ./dsh-postgres-expert-1.0.0.tgz` |
 | Local checkout | `dsh plugin add /absolute/path/to/dsh-postgres-expert` |
 | As a profile dependency | see below |
 
-The GitHub route above needs nothing but git access. The npm route, once
-published, is the shortest: no git, no `github:` prefix, and pnpm resolves it
-from the registry.
+The GitHub route needs nothing but git access to this repository. The npm route
+needs neither git nor an account, and is what the command above uses.
 
 As a profile dependency, add it to `package.json` and to `dsh.profile.bundles`:
 
 ```json
 {
   "dependencies": {
-    "dsh-postgres-expert": "github:mirelconstantin/dsh-postgres-expert"
+    "dsh-postgres-expert": "1.0.0"
   },
   "dsh": {
     "profile": {
@@ -85,6 +88,8 @@ As a profile dependency, add it to `package.json` and to `dsh.profile.bundles`:
   }
 }
 ```
+
+`dsh plugin add` does both of those edits for you.
 
 </details>
 
@@ -204,6 +209,26 @@ npm test              # behaviour tests over the catalogue and the sync helpers
 A GitHub Actions workflow runs `sync` daily and opens a pull request when
 upstream has moved. CI runs `sync:check` on **Linux and Windows** on every push
 and pull request, so a package cannot be published against a stale mirror.
+
+## Releasing
+
+Merging an upstream sync is not enough on its own: the registry serves a fixed
+tarball, so a new upstream state needs a new npm version before anyone receives
+it.
+
+```bash
+npm run prepublish      # every gate, without publishing
+npm version patch       # 1.0.0 -> 1.0.1
+npm publish
+git push --follow-tags
+```
+
+`npm publish` runs `scripts/prepublish.mjs` first, and refuses if any of it
+fails. A published name and version can never be reused, even after an
+unpublish, so the gate checks that the version is free on the registry, that the
+working tree is committed, and that the tag points at HEAD â€” otherwise the
+registry and the repository would describe different code under the same
+version.
 
 <details>
 <summary>How the sync reads upstream</summary>
